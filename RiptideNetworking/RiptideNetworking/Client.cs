@@ -52,7 +52,7 @@ namespace Riptide
         /// <summary>How many connection attempts to make before giving up.</summary>
         private int maxConnectionAttempts;
         /// <inheritdoc cref="Server.messageHandlers"/>
-        private Dictionary<ushort, MessageHandler> messageHandlers;
+        internal Dictionary<ushort, MessageHandler> messageHandlers;
         /// <summary>The underlying transport's client that is used for sending and receiving data.</summary>
         private IClient transport;
         /// <summary>Custom data to include when connecting.</summary>

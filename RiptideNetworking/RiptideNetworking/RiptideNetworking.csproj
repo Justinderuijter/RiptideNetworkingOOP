@@ -23,7 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <UPMSourceFiles Remove="InstancedMessageHandler.cs" />
+    <UPMSourceFiles Remove="InstancedClientMessageHandler.cs" />
+    <UPMSourceFiles Remove="InstancedServerMessageHandler.cs" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

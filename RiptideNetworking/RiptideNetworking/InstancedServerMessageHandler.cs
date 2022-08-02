@@ -5,21 +5,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using static Riptide.Server;
 
 namespace Riptide
 {
-#warning TODO: split between server and client
-    public abstract class InstancedMessageHandler
+    public abstract class InstancedServerMessageHandler
     {
         private static readonly HashSet<Type> registered = new HashSet<Type>();
         private readonly HashSet<ushort> messageIds;
         protected Server Server { get; private set; }
-        
-        public InstancedMessageHandler(Server server)
+
+        public InstancedServerMessageHandler(Server server)
         {
             Server = server;
             messageIds = new HashSet<ushort>();
@@ -32,7 +29,7 @@ namespace Riptide
             }
             else
             {
-                throw new DuplicateHandlerException("An " + nameof(InstancedMessageHandler) + " of type " + type.Name + "is already registered.");
+                throw new DuplicateHandlerException("An " + nameof(InstancedClientMessageHandler) + " of type " + type.Name + "is already registered.");
             }
         }
 
@@ -62,7 +59,7 @@ namespace Riptide
                             server.messageHandlers.Add(attribute.MessageId, (MessageHandler)serverMessageHandler);
                             messageIds.Add(attribute.MessageId);
                         }
-                            
+
                     }
                     else
                     {
@@ -83,7 +80,8 @@ namespace Riptide
             }
         }
 
-        ~InstancedMessageHandler()
+        //Could make this class disposable instead, but does that encourage short lived instances?
+        ~InstancedServerMessageHandler()
         {
             Type type = GetType();
 
@@ -93,7 +91,5 @@ namespace Riptide
                 registered.Remove(type);
             }
         }
-
-
     }
 }
