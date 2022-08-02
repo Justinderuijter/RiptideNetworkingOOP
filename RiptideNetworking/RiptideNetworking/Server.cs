@@ -53,7 +53,7 @@ namespace Riptide
         /// <summary>A flag to identify if message handlers should be instance methods.</summary>
         private bool useInstancedHandlers = false;
         /// <summary>Methods used to handle messages, accessible by their corresponding message IDs.</summary>
-        private Dictionary<ushort, MessageHandler> messageHandlers;
+        internal Dictionary<ushort, MessageHandler> messageHandlers;
         /// <summary>The underlying transport's server that is used for sending and receiving data.</summary>
         private IServer transport;
         /// <summary>All currently unused client IDs.</summary>
