@@ -50,8 +50,10 @@ namespace Riptide
         private Dictionary<ushort, Connection> clients;
         /// <summary>Clients that have timed out and need to be removed from <see cref="clients"/>.</summary>
         private List<Connection> timedOutClients;
+        /// <summary>A flag to identify if message handlers should be instance methods.</summary>
+        private bool useInstancedHandlers = false;
         /// <summary>Methods used to handle messages, accessible by their corresponding message IDs.</summary>
-        private Dictionary<ushort, MessageHandler> messageHandlers;
+        internal Dictionary<ushort, MessageHandler> messageHandlers;
         /// <summary>The underlying transport's server that is used for sending and receiving data.</summary>
         private IServer transport;
         /// <summary>All currently unused client IDs.</summary>
@@ -74,7 +76,7 @@ namespace Riptide
 
         /// <summary>Stops the server if it's running and swaps out the transport it's using.</summary>
         /// <param name="newTransport">The new underlying transport server to use for sending and receiving data.</param>
-        /// <remarks>This method does not automatically restart the server. To continue accepting connections, <see cref="Start(ushort, ushort, byte)"/> must be called again.</remarks>
+        /// <remarks>This method does not automatically restart the server. To continue accepting connections, <see cref="Start(ushort, ushort, byte, bool)"/> must be called again.</remarks>
         public void ChangeTransport(IServer newTransport)
         {
             Stop();
@@ -85,12 +87,12 @@ namespace Riptide
         /// <param name="port">The local port on which to start the server.</param>
         /// <param name="maxClientCount">The maximum number of concurrent connections to allow.</param>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="messageHandlers"/>.</param>
-        public void Start(ushort port, ushort maxClientCount, byte messageHandlerGroupId = 0)
+        public void Start(ushort port, ushort maxClientCount, byte messageHandlerGroupId = 0, bool useInstancedHandlers = false)
         {
             Stop();
 
             IncreaseActiveCount();
-            CreateMessageHandlersDictionary(messageHandlerGroupId);
+            CreateMessageHandlersDictionary(messageHandlerGroupId, useInstancedHandlers);
             MaxClientCount = maxClientCount;
             clients = new Dictionary<ushort, Connection>(maxClientCount);
             timedOutClients = new List<Connection>(maxClientCount);
@@ -122,7 +124,7 @@ namespace Riptide
         }
 
         /// <inheritdoc/>
-        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId)
+        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers)
         {
             MethodInfo[] methods = FindMessageHandlers();
 
@@ -133,8 +135,13 @@ namespace Riptide
                 if (attribute.GroupId != messageHandlerGroupId)
                     continue;
 
-                if (!methods[i].IsStatic)
+                if (!methods[i].IsStatic && !useInstancedHandlers)
                     throw new NonStaticHandlerException(methods[i].DeclaringType, methods[i].Name);
+                else if (useInstancedHandlers)
+                {
+                    //InstancedHandlers are added upon instantiation
+                    return;
+                }
 
                 Delegate serverMessageHandler = Delegate.CreateDelegate(typeof(MessageHandler), methods[i], false);
                 if (serverMessageHandler != null)

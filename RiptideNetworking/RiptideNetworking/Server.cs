@@ -128,7 +128,7 @@ namespace Riptide
         {
             MethodInfo[] methods = FindMessageHandlers();
 
-            messageHandlers = new Dictionary<ushort, MessageHandler>(methods.Length);
+            messageHandlers = messageHandlers ?? new Dictionary<ushort, MessageHandler>(methods.Length);
             for (int i = 0; i < methods.Length; i++)
             {
                 MessageHandlerAttribute attribute = methods[i].GetCustomAttribute<MessageHandlerAttribute>();

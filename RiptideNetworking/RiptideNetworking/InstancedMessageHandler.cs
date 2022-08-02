@@ -38,6 +38,11 @@ namespace Riptide
 
         private void RegisterMethods(Type type, Server server)
         {
+            if (server.messageHandlers == null)
+            {
+                server.messageHandlers = new Dictionary<ushort, MessageHandler>();
+            }
+
             foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 if (method.GetCustomAttributes(typeof(MessageHandlerAttribute), false).Length > 0)

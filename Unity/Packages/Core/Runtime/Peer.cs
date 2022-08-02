@@ -97,7 +97,7 @@ namespace Riptide
 
         /// <summary>Builds a dictionary of message IDs and their corresponding message handler methods.</summary>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to include in the dictionary.</param>
-        protected abstract void CreateMessageHandlersDictionary(byte messageHandlerGroupId);
+        protected abstract void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers);
 
         /// <summary>Starts tracking how much time has passed.</summary>
         protected void StartTime()
