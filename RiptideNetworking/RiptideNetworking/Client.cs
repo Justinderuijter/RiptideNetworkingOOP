@@ -86,7 +86,7 @@ namespace Riptide
         /// <param name="message">A message containing data that should be sent to the server with the connection attempt. Use <see cref="Message.Create()"/> to get an empty message instance.</param>
         /// <remarks>Riptide's default transport expects the host address to consist of an IP and port, separated by a colon. For example: <c>127.0.0.1:7777</c>. If you are using a different transport, check the relevant documentation for what information it requires in the host address.</remarks>
         /// <returns><see langword="true"/> if a connection attempt will be made. <see langword="false"/> if an issue occurred (such as <paramref name="hostAddress"/> being in an invalid format) and a connection attempt will <i>not</i> be made.</returns>
-        public bool Connect(string hostAddress, int maxConnectionAttempts = 5, byte messageHandlerGroupId = 0, Message message = null)
+        public bool Connect(string hostAddress, int maxConnectionAttempts = 5, byte messageHandlerGroupId = 0, Message message = null, bool useInstancedHandlers = false)
         {
             Disconnect();
 
@@ -102,7 +102,7 @@ namespace Riptide
             this.maxConnectionAttempts = maxConnectionAttempts;
             connection.Peer = this;
             IncreaseActiveCount();
-            CreateMessageHandlersDictionary(messageHandlerGroupId);
+            CreateMessageHandlersDictionary(messageHandlerGroupId, useInstancedHandlers);
 
             if (message != null)
             {
@@ -136,7 +136,7 @@ namespace Riptide
         }
 
         /// <inheritdoc/>
-        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId)
+        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers)
         {
             MethodInfo[] methods = FindMessageHandlers();
 
@@ -147,8 +147,13 @@ namespace Riptide
                 if (attribute.GroupId != messageHandlerGroupId)
                     continue;
 
-                if (!methods[i].IsStatic)
+                if (!methods[i].IsStatic && !useInstancedHandlers)
                     throw new NonStaticHandlerException(methods[i].DeclaringType, methods[i].Name);
+                else if (useInstancedHandlers)
+                {
+                    //InstancedHandlers are added upon instantiation
+                    return;
+                }
 
                 Delegate clientMessageHandler = Delegate.CreateDelegate(typeof(MessageHandler), methods[i], false);
                 if (clientMessageHandler != null)
