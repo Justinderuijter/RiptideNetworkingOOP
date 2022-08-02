@@ -555,6 +555,40 @@
             <summary>Retrieves the type from the message.</summary>
             <param name="message">The message to retrieve the type from.</param>
         </member>
+        <member name="T:Riptide.InstancedServerMessageHandler">
+            <summary>An instanced handler for incoming <see cref="T:Riptide.Client"/> <see cref="T:Riptide.Message"/>s.</summary>
+        </member>
+        <member name="F:Riptide.InstancedServerMessageHandler.registered">
+            <summary>
+            Holds all currently registered types that extend <see cref="T:Riptide.InstancedServerMessageHandler"/>.<br/>
+            Types get unregistered when they are collected by the Garbage Collector
+            </summary>
+        </member>
+        <member name="F:Riptide.InstancedServerMessageHandler.messageIds">
+            <summary>Holds all message ids registered by this <see cref="T:Riptide.InstancedServerMessageHandler"/>.</summary>
+        </member>
+        <member name="P:Riptide.InstancedServerMessageHandler.Server">
+            <summary>The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedClientMessageHandler"/> belongs to.</summary>
+        </member>
+        <member name="M:Riptide.InstancedServerMessageHandler.#ctor(Riptide.Server)">
+            <summary>Handles initial setup of this <see cref="T:Riptide.InstancedServerMessageHandler"/>.</summary>
+            <param name="server">The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedServerMessageHandler"/> instance's methods will be registered to.</param>
+            <remarks>
+            Be advised to not create new instances at will, this process may be slow. Instead prefer to instantiate your <see cref="T:Riptide.InstancedServerMessageHandler"/> objects at the beginning of your program.<br/><br/>
+            Throws <see cref="T:Riptide.DuplicateHandlerException"/> if an instance of this type already exists.
+            </remarks>
+        </member>
+        <member name="M:Riptide.InstancedServerMessageHandler.RegisterMethods(System.Type,Riptide.Server)">
+            <summary>Adds the message IDs and their corresponding message handler methods to the <see cref="T:Riptide.Server"/>'s <see cref="T:Riptide.Server.MessageHandler"/>'s.</summary>
+            <param name="type">The type of the child class.</param>
+            <param name="server">The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedServerMessageHandler"/> instance's methods will be registered to.</param>
+        </member>
+        <member name="M:Riptide.InstancedServerMessageHandler.Unregister">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="P:Riptide.InstancedServerMessageHandler.Server"/>.</summary>
+        </member>
+        <member name="M:Riptide.InstancedServerMessageHandler.Finalize">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="P:Riptide.InstancedServerMessageHandler.Server"/>.</summary>
+        </member>
         <member name="T:Riptide.MessageSendMode">
             <summary>The send mode of a <see cref="T:Riptide.Message"/>.</summary>
         </member>

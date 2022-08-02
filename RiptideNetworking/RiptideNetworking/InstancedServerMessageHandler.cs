@@ -10,12 +10,25 @@ using static Riptide.Server;
 
 namespace Riptide
 {
+    /// <summary>An instanced handler for incoming <see cref="Client"/> <see cref="Message"/>s.</summary>
     public abstract class InstancedServerMessageHandler
     {
+        /// <summary>
+        /// Holds all currently registered types that extend <see cref="InstancedServerMessageHandler"/>.<br/>
+        /// Types get unregistered when they are collected by the Garbage Collector
+        /// </summary>
         private static readonly HashSet<Type> registered = new HashSet<Type>();
+        /// <summary>Holds all message ids registered by this <see cref="InstancedServerMessageHandler"/>.</summary>
         private readonly HashSet<ushort> messageIds;
+        /// <summary>The <see cref="Riptide.Server"/> that this <see cref="InstancedClientMessageHandler"/> belongs to.</summary>
         protected Server Server { get; private set; }
 
+        /// <summary>Handles initial setup of this <see cref="InstancedServerMessageHandler"/>.</summary>
+        /// <param name="server">The <see cref="Riptide.Server"/> that this <see cref="InstancedServerMessageHandler"/> instance's methods will be registered to.</param>
+        /// <remarks>
+        /// Be advised to not create new instances at will, this process may be slow. Instead prefer to instantiate your <see cref="InstancedServerMessageHandler"/> objects at the beginning of your program.<br/><br/>
+        /// Throws <see cref="DuplicateHandlerException"/> if an instance of this type already exists.
+        /// </remarks>
         public InstancedServerMessageHandler(Server server)
         {
             Server = server;
@@ -33,6 +46,9 @@ namespace Riptide
             }
         }
 
+        /// <summary>Adds the message IDs and their corresponding message handler methods to the <see cref="Riptide.Server"/>'s <see cref="MessageHandler"/>'s.</summary>
+        /// <param name="type">The type of the child class.</param>
+        /// <param name="server">The <see cref="Riptide.Server"/> that this <see cref="InstancedServerMessageHandler"/> instance's methods will be registered to.</param>
         private void RegisterMethods(Type type, Server server)
         {
             if (server.messageHandlers == null)
@@ -72,6 +88,7 @@ namespace Riptide
             }
         }
 
+        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Server"/>.</summary>
         private void Unregister()
         {
             foreach (ushort id in messageIds)
@@ -81,6 +98,7 @@ namespace Riptide
         }
 
         //Could make this class disposable instead, but does that encourage short lived instances?
+        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Server"/>.</summary>
         ~InstancedServerMessageHandler()
         {
             Type type = GetType();
