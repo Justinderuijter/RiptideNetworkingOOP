@@ -32,7 +32,7 @@ namespace Riptide
             }
             else
             {
-                throw new DuplicateHandlerException("An " + nameof(InstancedMessageHandler) + " is already registered.");
+                throw new DuplicateHandlerException("An " + nameof(InstancedMessageHandler) + " of type " + type.Name + "is already registered.");
             }
         }
 
