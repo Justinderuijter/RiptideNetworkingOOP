@@ -11,7 +11,7 @@ using static Riptide.Server;
 namespace Riptide
 {
     /// <summary>An instanced handler for incoming <see cref="Client"/> <see cref="Message"/>s.</summary>
-    public abstract class InstancedServerMessageHandler
+    public abstract class InstancedServerMessageHandler: IDisposable
     {
         /// <summary>
         /// Holds all currently registered types that extend <see cref="InstancedServerMessageHandler"/>.<br/>
@@ -88,8 +88,8 @@ namespace Riptide
             }
         }
 
-        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Server"/>.</summary>
-        private void Unregister()
+        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Riptide.Server"/>.</summary>
+        private void UnregisterHandlers()
         {
             foreach (ushort id in messageIds)
             {
@@ -97,17 +97,29 @@ namespace Riptide
             }
         }
 
-        //Could make this class disposable instead, but does that encourage short lived instances?
-        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Server"/>.</summary>
-        ~InstancedServerMessageHandler()
+        private void Unregister()
         {
             Type type = GetType();
 
             if (registered.Contains(type))
             {
-                Unregister();
+                UnregisterHandlers();
                 registered.Remove(type);
             }
+        }
+
+        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Riptide.Server"/>.</summary>
+        public void Dispose()
+        {
+            Unregister();
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>Unregisters all of this instance's handler methods from the <see cref="Riptide.Server"/>.</summary>
+        /// <remarks>This finalizer only runs when the object is garbage collected before <see cref="Dispose"/> is ran.</remarks>
+        ~InstancedServerMessageHandler()
+        {
+            Unregister();
         }
     }
 }
