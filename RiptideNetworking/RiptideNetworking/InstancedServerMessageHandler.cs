@@ -20,7 +20,7 @@ namespace Riptide
         private static readonly HashSet<Type> registered = new HashSet<Type>();
         /// <summary>Holds all message ids registered by this <see cref="InstancedServerMessageHandler"/>.</summary>
         private readonly HashSet<ushort> messageIds;
-        /// <summary>The <see cref="Riptide.Server"/> that this <see cref="InstancedClientMessageHandler"/> belongs to.</summary>
+        /// <summary>The <see cref="Riptide.Server"/> that this <see cref="InstancedServerMessageHandler"/> belongs to.</summary>
         protected Server Server { get; private set; }
 
         /// <summary>Handles initial setup of this <see cref="InstancedServerMessageHandler"/>.</summary>
