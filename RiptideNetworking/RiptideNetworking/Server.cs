@@ -87,6 +87,7 @@ namespace Riptide
         /// <param name="port">The local port on which to start the server.</param>
         /// <param name="maxClientCount">The maximum number of concurrent connections to allow.</param>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="messageHandlers"/>.</param>
+        /// <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         public void Start(ushort port, ushort maxClientCount, byte messageHandlerGroupId = 0, bool useInstancedHandlers = false)
         {
             Stop();
@@ -126,7 +127,7 @@ namespace Riptide
         /// <inheritdoc/>
         protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers)
         {
-            MethodInfo[] methods = FindMessageHandlers();
+            MethodInfo[] methods = FindMessageHandlers(useInstancedHandlers);
 
             messageHandlers = messageHandlers ?? new Dictionary<ushort, MessageHandler>(methods.Length);
             for (int i = 0; i < methods.Length; i++)
