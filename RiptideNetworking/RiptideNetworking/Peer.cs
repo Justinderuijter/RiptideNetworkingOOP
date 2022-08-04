@@ -84,6 +84,7 @@ namespace Riptide
         /// <returns>An array containing message handler methods.</returns>
         protected MethodInfo[] FindMessageHandlers(bool useInstancedHandlers)
         {
+            // Always include instance methods in the search so we can show the developer an error instead of silently not adding instance methods to the dictionary while not running instanced handlers mode
             BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
             if (!useInstancedHandlers)
@@ -95,7 +96,7 @@ namespace Riptide
                     .GetReferencedAssemblies()
                     .Any(n => n.FullName == thisAssemblyName)) // Get only assemblies that reference this assembly
                 .SelectMany(a => a.GetTypes())
-                .SelectMany(t => t.GetMethods(flags)) // Include instance methods in the search so we can show the developer an error instead of silently not adding instance methods to the dictionary
+                .SelectMany(t => t.GetMethods(flags))
                 .Where(m => m.GetCustomAttributes(typeof(MessageHandlerAttribute), false).Length > 0)
                 .ToArray();
         }
