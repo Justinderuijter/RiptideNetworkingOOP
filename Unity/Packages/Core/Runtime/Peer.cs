@@ -82,21 +82,27 @@ namespace Riptide
 
         /// <summary>Retrieves methods marked with <see cref="MessageHandlerAttribute"/>.</summary>
         /// <returns>An array containing message handler methods.</returns>
-        protected MethodInfo[] FindMessageHandlers()
+        protected MethodInfo[] FindMessageHandlers(bool useInstancedHandlers)
         {
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            if (!useInstancedHandlers)
+                flags |= BindingFlags.Static;
+
             string thisAssemblyName = Assembly.GetExecutingAssembly().GetName().FullName;
             return AppDomain.CurrentDomain.GetAssemblies()
                 .Where(a => a
                     .GetReferencedAssemblies()
                     .Any(n => n.FullName == thisAssemblyName)) // Get only assemblies that reference this assembly
                 .SelectMany(a => a.GetTypes())
-                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)) // Include instance methods in the search so we can show the developer an error instead of silently not adding instance methods to the dictionary
+                .SelectMany(t => t.GetMethods(flags)) // Include instance methods in the search so we can show the developer an error instead of silently not adding instance methods to the dictionary
                 .Where(m => m.GetCustomAttributes(typeof(MessageHandlerAttribute), false).Length > 0)
                 .ToArray();
         }
 
         /// <summary>Builds a dictionary of message IDs and their corresponding message handler methods.</summary>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to include in the dictionary.</param>
+        /// <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         protected abstract void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers);
 
         /// <summary>Starts tracking how much time has passed.</summary>

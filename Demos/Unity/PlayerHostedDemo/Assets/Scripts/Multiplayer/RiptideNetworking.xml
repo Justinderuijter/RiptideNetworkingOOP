@@ -76,7 +76,7 @@
         <member name="M:Riptide.Client.ChangeTransport(Riptide.Transports.IClient)">
             <summary>Disconnects the client if it's connected and swaps out the transport it's using.</summary>
             <param name="newTransport">The new transport to use for sending and receiving data.</param>
-            <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="!:Connect(string, int, byte, Message)"/> must be called again.</remarks>
+            <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message,System.Boolean)"/> must be called again.</remarks>
         </member>
         <member name="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message,System.Boolean)">
             <summary>Attempts to connect to a server at the given host address.</summary>
@@ -84,6 +84,7 @@
             <param name="maxConnectionAttempts">How many connection attempts to make before giving up.</param>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="F:Riptide.Client.messageHandlers"/>.</param>
             <param name="message">A message containing data that should be sent to the server with the connection attempt. Use <see cref="M:Riptide.Message.Create"/> to get an empty message instance.</param>
+            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
             <remarks>Riptide's default transport expects the host address to consist of an IP and port, separated by a colon. For example: <c>127.0.0.1:7777</c>. If you are using a different transport, check the relevant documentation for what information it requires in the host address.</remarks>
             <returns><see langword="true"/> if a connection attempt will be made. <see langword="false"/> if an issue occurred (such as <paramref name="hostAddress"/> being in an invalid format) and a connection attempt will <i>not</i> be made.</returns>
         </member>
@@ -555,6 +556,44 @@
             <summary>Retrieves the type from the message.</summary>
             <param name="message">The message to retrieve the type from.</param>
         </member>
+        <member name="T:Riptide.InstancedClientMessageHandler">
+            <summary>An instanced handler for incoming <see cref="T:Riptide.Server"/> <see cref="T:Riptide.Message"/>s.</summary>
+        </member>
+        <member name="F:Riptide.InstancedClientMessageHandler.registered">
+            <summary>
+            Holds all currently registered types that extend <see cref="T:Riptide.InstancedClientMessageHandler"/>.<br/>
+            Types get unregistered when they are collected by the Garbage Collector
+            </summary>
+        </member>
+        <member name="F:Riptide.InstancedClientMessageHandler.messageIds">
+            <summary>Holds all message ids registered by this <see cref="T:Riptide.InstancedClientMessageHandler"/>.</summary>
+        </member>
+        <member name="P:Riptide.InstancedClientMessageHandler.Client">
+            <summary>The <see cref="T:Riptide.Client"/> that this <see cref="T:Riptide.InstancedClientMessageHandler"/> belongs to.</summary>
+        </member>
+        <member name="M:Riptide.InstancedClientMessageHandler.#ctor(Riptide.Client)">
+            <summary>Handles initial setup of this <see cref="T:Riptide.InstancedClientMessageHandler"/>.</summary>
+            <param name="client">The <see cref="T:Riptide.Client"/> that this <see cref="T:Riptide.InstancedClientMessageHandler"/> instance's methods will be registered to.</param>
+            <remarks>
+            Be advised to not create new instances at will, this process may be slow. Instead prefer to instantiate your <see cref="T:Riptide.InstancedClientMessageHandler"/> objects at the beginning of your program.<br/><br/>
+            Throws <see cref="T:Riptide.DuplicateHandlerException"/> if an instance of this type already exists.
+            </remarks>
+        </member>
+        <member name="M:Riptide.InstancedClientMessageHandler.RegisterMethods(System.Type,Riptide.Client)">
+            <summary>Adds the message IDs and their corresponding message handler methods to the <see cref="T:Riptide.Client"/>'s <see cref="T:Riptide.Client.MessageHandler"/>'s.</summary>
+            <param name="type">The type of the child class.</param>
+            <param name="client">The <see cref="T:Riptide.Client"/> that this <see cref="T:Riptide.InstancedClientMessageHandler"/> instance's methods will be registered to.</param>
+        </member>
+        <member name="M:Riptide.InstancedClientMessageHandler.UnregisterHandlers">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Client"/>.</summary>
+        </member>
+        <member name="M:Riptide.InstancedClientMessageHandler.Dispose">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Client"/>.</summary>
+        </member>
+        <member name="M:Riptide.InstancedClientMessageHandler.Finalize">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Client"/>.</summary>
+            <remarks>This finalizer only runs when the object is garbage collected before <see cref="M:Riptide.InstancedClientMessageHandler.Dispose"/> is ran.</remarks>
+        </member>
         <member name="T:Riptide.InstancedServerMessageHandler">
             <summary>An instanced handler for incoming <see cref="T:Riptide.Client"/> <see cref="T:Riptide.Message"/>s.</summary>
         </member>
@@ -568,7 +607,7 @@
             <summary>Holds all message ids registered by this <see cref="T:Riptide.InstancedServerMessageHandler"/>.</summary>
         </member>
         <member name="P:Riptide.InstancedServerMessageHandler.Server">
-            <summary>The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedClientMessageHandler"/> belongs to.</summary>
+            <summary>The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedServerMessageHandler"/> belongs to.</summary>
         </member>
         <member name="M:Riptide.InstancedServerMessageHandler.#ctor(Riptide.Server)">
             <summary>Handles initial setup of this <see cref="T:Riptide.InstancedServerMessageHandler"/>.</summary>
@@ -583,11 +622,15 @@
             <param name="type">The type of the child class.</param>
             <param name="server">The <see cref="T:Riptide.Server"/> that this <see cref="T:Riptide.InstancedServerMessageHandler"/> instance's methods will be registered to.</param>
         </member>
-        <member name="M:Riptide.InstancedServerMessageHandler.Unregister">
-            <summary>Unregisters all of this instance's handler methods from the <see cref="P:Riptide.InstancedServerMessageHandler.Server"/>.</summary>
+        <member name="M:Riptide.InstancedServerMessageHandler.UnregisterHandlers">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Server"/>.</summary>
+        </member>
+        <member name="M:Riptide.InstancedServerMessageHandler.Dispose">
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Server"/>.</summary>
         </member>
         <member name="M:Riptide.InstancedServerMessageHandler.Finalize">
-            <summary>Unregisters all of this instance's handler methods from the <see cref="P:Riptide.InstancedServerMessageHandler.Server"/>.</summary>
+            <summary>Unregisters all of this instance's handler methods from the <see cref="T:Riptide.Server"/>.</summary>
+            <remarks>This finalizer only runs when the object is garbage collected before <see cref="M:Riptide.InstancedServerMessageHandler.Dispose"/> is ran.</remarks>
         </member>
         <member name="T:Riptide.MessageSendMode">
             <summary>The send mode of a <see cref="T:Riptide.Message"/>.</summary>
@@ -1467,13 +1510,14 @@
             <summary>Initializes the peer.</summary>
             <param name="logName">The name to use when logging messages via <see cref="T:Riptide.Utils.RiptideLogger"/>.</param>
         </member>
-        <member name="M:Riptide.Peer.FindMessageHandlers">
+        <member name="M:Riptide.Peer.FindMessageHandlers(System.Boolean)">
             <summary>Retrieves methods marked with <see cref="T:Riptide.MessageHandlerAttribute"/>.</summary>
             <returns>An array containing message handler methods.</returns>
         </member>
         <member name="M:Riptide.Peer.CreateMessageHandlersDictionary(System.Byte,System.Boolean)">
             <summary>Builds a dictionary of message IDs and their corresponding message handler methods.</summary>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to include in the dictionary.</param>
+            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         </member>
         <member name="M:Riptide.Peer.StartTime">
             <summary>Starts tracking how much time has passed.</summary>
@@ -1668,6 +1712,7 @@
             <param name="port">The local port on which to start the server.</param>
             <param name="maxClientCount">The maximum number of concurrent connections to allow.</param>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="F:Riptide.Server.messageHandlers"/>.</param>
+            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         </member>
         <member name="M:Riptide.Server.SubToTransportEvents">
             <summary>Subscribes appropriate methods to the transport's events.</summary>
