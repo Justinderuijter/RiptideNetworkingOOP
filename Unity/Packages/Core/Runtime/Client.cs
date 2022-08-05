@@ -72,7 +72,7 @@ namespace Riptide
 
         /// <summary>Disconnects the client if it's connected and swaps out the transport it's using.</summary>
         /// <param name="newTransport">The new transport to use for sending and receiving data.</param>
-        /// <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="Connect(string, int, byte, Message, bool)"/> must be called again.</remarks>
+        /// <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="Connect(string, int, byte, Message)"/> must be called again.</remarks>
         public void ChangeTransport(IClient newTransport)
         {
             Disconnect();
@@ -84,10 +84,9 @@ namespace Riptide
         /// <param name="maxConnectionAttempts">How many connection attempts to make before giving up.</param>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="messageHandlers"/>.</param>
         /// <param name="message">A message containing data that should be sent to the server with the connection attempt. Use <see cref="Message.Create()"/> to get an empty message instance.</param>
-        /// <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         /// <remarks>Riptide's default transport expects the host address to consist of an IP and port, separated by a colon. For example: <c>127.0.0.1:7777</c>. If you are using a different transport, check the relevant documentation for what information it requires in the host address.</remarks>
         /// <returns><see langword="true"/> if a connection attempt will be made. <see langword="false"/> if an issue occurred (such as <paramref name="hostAddress"/> being in an invalid format) and a connection attempt will <i>not</i> be made.</returns>
-        public bool Connect(string hostAddress, int maxConnectionAttempts = 5, byte messageHandlerGroupId = 0, Message message = null, bool useInstancedHandlers = false)
+        public bool Connect(string hostAddress, int maxConnectionAttempts = 5, byte messageHandlerGroupId = 0, Message message = null)
         {
             Disconnect();
 
@@ -103,7 +102,7 @@ namespace Riptide
             this.maxConnectionAttempts = maxConnectionAttempts;
             connection.Peer = this;
             IncreaseActiveCount();
-            CreateMessageHandlersDictionary(messageHandlerGroupId, useInstancedHandlers);
+            CreateMessageHandlersDictionary(messageHandlerGroupId);
 
             if (message != null)
             {
@@ -137,9 +136,15 @@ namespace Riptide
         }
 
         /// <inheritdoc/>
-        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers)
+        protected override void CreateMessageHandlersDictionary(byte messageHandlerGroupId)
         {
-            MethodInfo[] methods = FindMessageHandlers(useInstancedHandlers);
+            if (IsUsingInstancedMessageHandlers)
+            {
+                //InstancedHandlers are added upon instantiation
+                return;
+            }
+
+            MethodInfo[] methods = FindMessageHandlers();
 
             messageHandlers = new Dictionary<ushort, MessageHandler>(methods.Length);
             for (int i = 0; i < methods.Length; i++)
@@ -148,13 +153,8 @@ namespace Riptide
                 if (attribute.GroupId != messageHandlerGroupId)
                     continue;
 
-                if (!methods[i].IsStatic && !useInstancedHandlers)
+                if (!methods[i].IsStatic)
                     throw new NonStaticHandlerException(methods[i].DeclaringType, methods[i].Name);
-                else if (useInstancedHandlers)
-                {
-                    //InstancedHandlers are added upon instantiation
-                    return;
-                }
 
                 Delegate clientMessageHandler = Delegate.CreateDelegate(typeof(MessageHandler), methods[i], false);
                 if (clientMessageHandler != null)

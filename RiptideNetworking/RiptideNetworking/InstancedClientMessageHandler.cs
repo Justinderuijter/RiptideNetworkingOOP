@@ -34,6 +34,11 @@ namespace Riptide
             Client = client;
             messageIds = new HashSet<ushort>();
 
+            if (!client.IsUsingInstancedMessageHandlers)
+            {
+                return; //Throw exception or write debug message to notify user?
+            }
+
             Type type = GetType();
             if (!registered.Contains(type))
             {

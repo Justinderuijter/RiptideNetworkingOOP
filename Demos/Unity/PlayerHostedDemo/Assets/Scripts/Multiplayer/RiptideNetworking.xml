@@ -76,15 +76,14 @@
         <member name="M:Riptide.Client.ChangeTransport(Riptide.Transports.IClient)">
             <summary>Disconnects the client if it's connected and swaps out the transport it's using.</summary>
             <param name="newTransport">The new transport to use for sending and receiving data.</param>
-            <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message,System.Boolean)"/> must be called again.</remarks>
+            <remarks>This method does not automatically reconnect to the server. To continue communicating with the server, <see cref="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message)"/> must be called again.</remarks>
         </member>
-        <member name="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message,System.Boolean)">
+        <member name="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message)">
             <summary>Attempts to connect to a server at the given host address.</summary>
             <param name="hostAddress">The host address to connect to.</param>
             <param name="maxConnectionAttempts">How many connection attempts to make before giving up.</param>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="F:Riptide.Client.messageHandlers"/>.</param>
             <param name="message">A message containing data that should be sent to the server with the connection attempt. Use <see cref="M:Riptide.Message.Create"/> to get an empty message instance.</param>
-            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
             <remarks>Riptide's default transport expects the host address to consist of an IP and port, separated by a colon. For example: <c>127.0.0.1:7777</c>. If you are using a different transport, check the relevant documentation for what information it requires in the host address.</remarks>
             <returns><see langword="true"/> if a connection attempt will be made. <see langword="false"/> if an issue occurred (such as <paramref name="hostAddress"/> being in an invalid format) and a connection attempt will <i>not</i> be made.</returns>
         </member>
@@ -94,7 +93,7 @@
         <member name="M:Riptide.Client.UnsubFromTransportEvents">
             <summary>Unsubscribes methods from all of the transport's events.</summary>
         </member>
-        <member name="M:Riptide.Client.CreateMessageHandlersDictionary(System.Byte,System.Boolean)">
+        <member name="M:Riptide.Client.CreateMessageHandlersDictionary(System.Byte)">
             <inheritdoc/>
         </member>
         <member name="M:Riptide.Client.Heartbeat">
@@ -1410,7 +1409,7 @@
               <para>
                 If you want a <see cref="T:Riptide.Server"/> or <see cref="T:Riptide.Client"/> to only use a subset of all message handler methods, you can do so by setting up
                 custom message handler groups. Simply set the group ID in the <see cref="M:Riptide.MessageHandlerAttribute.#ctor(System.UInt16,System.Byte)"/> constructor and pass the
-                same value to the <see cref="!:Server.Start(ushort, ushort, byte)"/> or <see cref="!:Client.Connect(string, int, byte, Message)"/> method. This
+                same value to the <see cref="M:Riptide.Server.Start(System.UInt16,System.UInt16,System.Byte)"/> or <see cref="M:Riptide.Client.Connect(System.String,System.Int32,System.Byte,Riptide.Message)"/> method. This
                 will make that <see cref="T:Riptide.Server"/> or <see cref="T:Riptide.Client"/> only use message handlers which have the same group ID.
               </para>
             </remarks>
@@ -1463,6 +1462,9 @@
         <member name="F:Riptide.Peer.LogName">
             <summary>The name to use when logging messages via <see cref="T:Riptide.Utils.RiptideLogger"/>.</summary>
         </member>
+        <member name="P:Riptide.Peer.IsUsingInstancedMessageHandlers">
+            <summary>Whether or not to use instanced handlers instead of static handlers.</summary>
+        </member>
         <member name="P:Riptide.Peer.TimeoutTime">
             <summary>The time (in milliseconds) after which to disconnect if no heartbeats are received.</summary>
         </member>
@@ -1506,18 +1508,18 @@
         <member name="F:Riptide.Peer.eventQueue">
             <summary>A queue of events to execute, ordered by how soon they need to be executed.</summary>
         </member>
-        <member name="M:Riptide.Peer.#ctor(System.String)">
+        <member name="M:Riptide.Peer.#ctor(System.String,System.Boolean)">
             <summary>Initializes the peer.</summary>
             <param name="logName">The name to use when logging messages via <see cref="T:Riptide.Utils.RiptideLogger"/>.</param>
+            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         </member>
-        <member name="M:Riptide.Peer.FindMessageHandlers(System.Boolean)">
+        <member name="M:Riptide.Peer.FindMessageHandlers">
             <summary>Retrieves methods marked with <see cref="T:Riptide.MessageHandlerAttribute"/>.</summary>
             <returns>An array containing message handler methods.</returns>
         </member>
-        <member name="M:Riptide.Peer.CreateMessageHandlersDictionary(System.Byte,System.Boolean)">
+        <member name="M:Riptide.Peer.CreateMessageHandlersDictionary(System.Byte)">
             <summary>Builds a dictionary of message IDs and their corresponding message handler methods.</summary>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to include in the dictionary.</param>
-            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         </member>
         <member name="M:Riptide.Peer.StartTime">
             <summary>Starts tracking how much time has passed.</summary>
@@ -1705,14 +1707,13 @@
         <member name="M:Riptide.Server.ChangeTransport(Riptide.Transports.IServer)">
             <summary>Stops the server if it's running and swaps out the transport it's using.</summary>
             <param name="newTransport">The new underlying transport server to use for sending and receiving data.</param>
-            <remarks>This method does not automatically restart the server. To continue accepting connections, <see cref="M:Riptide.Server.Start(System.UInt16,System.UInt16,System.Byte,System.Boolean)"/> must be called again.</remarks>
+            <remarks>This method does not automatically restart the server. To continue accepting connections, <see cref="M:Riptide.Server.Start(System.UInt16,System.UInt16,System.Byte)"/> must be called again.</remarks>
         </member>
-        <member name="M:Riptide.Server.Start(System.UInt16,System.UInt16,System.Byte,System.Boolean)">
+        <member name="M:Riptide.Server.Start(System.UInt16,System.UInt16,System.Byte)">
             <summary>Starts the server.</summary>
             <param name="port">The local port on which to start the server.</param>
             <param name="maxClientCount">The maximum number of concurrent connections to allow.</param>
             <param name="messageHandlerGroupId">The ID of the group of message handler methods to use when building <see cref="F:Riptide.Server.messageHandlers"/>.</param>
-            <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
         </member>
         <member name="M:Riptide.Server.SubToTransportEvents">
             <summary>Subscribes appropriate methods to the transport's events.</summary>
@@ -1720,7 +1721,7 @@
         <member name="M:Riptide.Server.UnsubFromTransportEvents">
             <summary>Unsubscribes methods from all of the transport's events.</summary>
         </member>
-        <member name="M:Riptide.Server.CreateMessageHandlersDictionary(System.Byte,System.Boolean)">
+        <member name="M:Riptide.Server.CreateMessageHandlersDictionary(System.Byte)">
             <inheritdoc/>
         </member>
         <member name="M:Riptide.Server.HandleConnectionAttempt(System.Object,Riptide.Transports.ConnectedEventArgs)">

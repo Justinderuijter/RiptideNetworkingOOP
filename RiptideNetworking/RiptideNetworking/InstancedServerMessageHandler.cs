@@ -34,6 +34,11 @@ namespace Riptide
             Server = server;
             messageIds = new HashSet<ushort>();
 
+            if (!server.IsUsingInstancedMessageHandlers)
+            {
+                return; //Throw exception or write debug message to notify user?
+            }
+
             Type type = GetType();
             if (!registered.Contains(type))
             {
@@ -52,9 +57,7 @@ namespace Riptide
         private void RegisterMethods(Type type, Server server)
         {
             if (server.messageHandlers == null)
-            {
-                server.messageHandlers = new Dictionary<ushort, MessageHandler>();
-            }
+                server.messageHandlers = new Dictionary<ushort, MessageHandler>(); 
 
             foreach (MethodInfo method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {

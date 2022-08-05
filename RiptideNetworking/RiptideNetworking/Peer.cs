@@ -39,6 +39,8 @@ namespace Riptide
     {
         /// <summary>The name to use when logging messages via <see cref="RiptideLogger"/>.</summary>
         public readonly string LogName;
+        /// <summary>Whether or not to use instanced handlers instead of static handlers.</summary>
+        public bool IsUsingInstancedMessageHandlers { get; private set; }
         /// <summary>The time (in milliseconds) after which to disconnect if no heartbeats are received.</summary>
         public ushort TimeoutTime { get; set; } = 5000;
         /// <summary>The interval (in milliseconds) at which to send and expect heartbeats to be received.</summary>
@@ -75,19 +77,21 @@ namespace Riptide
 
         /// <summary>Initializes the peer.</summary>
         /// <param name="logName">The name to use when logging messages via <see cref="RiptideLogger"/>.</param>
-        public Peer(string logName)
+        /// <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
+        public Peer(string logName, bool useInstancedHandlers = false)
         {
             LogName = logName;
+            IsUsingInstancedMessageHandlers = useInstancedHandlers;
         }
 
         /// <summary>Retrieves methods marked with <see cref="MessageHandlerAttribute"/>.</summary>
         /// <returns>An array containing message handler methods.</returns>
-        protected MethodInfo[] FindMessageHandlers(bool useInstancedHandlers)
+        protected MethodInfo[] FindMessageHandlers()
         {
             // Always include instance methods in the search so we can show the developer an error instead of silently not adding instance methods to the dictionary while not running instanced handlers mode
             BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
-            if (!useInstancedHandlers)
+            if (!IsUsingInstancedMessageHandlers)
                 flags |= BindingFlags.Static;
 
             string thisAssemblyName = Assembly.GetExecutingAssembly().GetName().FullName;
@@ -103,8 +107,7 @@ namespace Riptide
 
         /// <summary>Builds a dictionary of message IDs and their corresponding message handler methods.</summary>
         /// <param name="messageHandlerGroupId">The ID of the group of message handler methods to include in the dictionary.</param>
-        /// <param name="useInstancedHandlers">Whether or not to use instanced handlers instead of static handlers, <see langword="false"/> by default.</param>
-        protected abstract void CreateMessageHandlersDictionary(byte messageHandlerGroupId, bool useInstancedHandlers);
+        protected abstract void CreateMessageHandlersDictionary(byte messageHandlerGroupId);
 
         /// <summary>Starts tracking how much time has passed.</summary>
         protected void StartTime()
